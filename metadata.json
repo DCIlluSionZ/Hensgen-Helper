@@ -1,0 +1,8 @@
+
+{
+  "name": "Hensgen Helper",
+  "description": "A private web application for Adrian Hensgen with tools for building, health tracking, and information, adapted from a native app concept.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
