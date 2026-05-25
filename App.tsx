@@ -207,10 +207,13 @@ const PhotoPriceCheckScreen: React.FC = () => {
 
 const ToolsScreen: React.FC = () => {
     const [angle, setAngle] = useState(0);
+    const [torchOn, setTorchOn] = useState(false);
+    const [torchStream, setTorchStream] = useState<MediaStream | null>(null);
+    const [torchError, setTorchError] = useState('');
 
     useEffect(() => {
         const handleOrientation = (event: DeviceOrientationEvent) => {
-            const beta = event.beta; // x-axis rotation in degrees, range [-180, 180]
+            const beta = event.beta;
             if (beta !== null) {
                 setAngle(beta);
             }
@@ -231,12 +234,41 @@ const ToolsScreen: React.FC = () => {
         };
     }, [angle]);
 
+    useEffect(() => {
+        return () => {
+            if (torchStream) {
+                torchStream.getTracks().forEach(t => t.stop());
+            }
+        };
+    }, [torchStream]);
+
+    const toggleTorch = async () => {
+        if (torchOn && torchStream) {
+            torchStream.getTracks().forEach(t => t.stop());
+            setTorchStream(null);
+            setTorchOn(false);
+            return;
+        }
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' }
+            });
+            const track = stream.getVideoTracks()[0];
+            await (track as any).applyConstraints({ advanced: [{ torch: true }] });
+            setTorchStream(stream);
+            setTorchOn(true);
+            setTorchError('');
+        } catch {
+            setTorchError('Flashlight not available on this device.');
+        }
+    };
+
     const isLevel = Math.abs(angle) < 0.3;
 
     return (
         <div className="p-4 space-y-6">
             <h3 className="text-2xl font-bold text-slate-800 text-center">Builder's Tools</h3>
-            {/* Bubble Level */}
             <div className="bg-slate-800 p-6 rounded-lg shadow-inner text-white space-y-4">
                 <h4 className="text-lg font-semibold text-center text-slate-300">Bubble Level</h4>
                 <div className={`relative w-full h-16 bg-slate-700 rounded-full flex items-center justify-center overflow-hidden border-2 ${isLevel ? 'border-green-400' : 'border-slate-500'}`}>
@@ -252,10 +284,15 @@ const ToolsScreen: React.FC = () => {
                     {angle.toFixed(1)}°
                 </p>
             </div>
-            {/* Camera Ruler */}
-            <div className="bg-slate-200 p-6 rounded-lg text-slate-700">
-                <h4 className="text-lg font-semibold text-center mb-2">Camera Ruler</h4>
-                <p className="text-center text-sm">This feature requires advanced device capabilities not fully supported in web browsers. For accurate AR measurements, a native app is recommended.</p>
+            <div className="space-y-3">
+                <h4 className="text-lg font-semibold text-center text-slate-700">Flashlight</h4>
+                <button
+                    onClick={toggleTorch}
+                    className={`w-full font-bold py-4 px-4 rounded-lg shadow-md transition-colors text-xl ${torchOn ? 'bg-yellow-400 text-black hover:bg-yellow-500' : 'bg-slate-700 text-white hover:bg-slate-800'}`}
+                >
+                    {torchOn ? '🔦 Torch ON — Tap to Turn Off' : '🔦 Turn On Torch'}
+                </button>
+                {torchError && <p className="text-center text-red-500 text-sm">{torchError}</p>}
             </div>
         </div>
     );
@@ -536,30 +573,64 @@ const ChatScreen: React.FC = () => {
 
 const InfoScreen: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'universe' | 'legacy'>('universe');
-    const [legacyContent, setLegacyContent] = useLocalStorage<string>('legacyContent', `
-# A Master Builder's Journey
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [legacyContent, setLegacyContent] = useLocalStorage<string>('legacyContent', `# Adrian Hensgen — Master Builder
 
-Adrian Hensgen's story is one of dedication, skill, and a passion for creation. From his early days as an apprentice to becoming a master builder in Ringwood, his hands have shaped countless homes and structures.
+From a teenager on a sheep farm in Mildura to a Master Builder in Melbourne.
 
-This is a space to celebrate that legacy.
+Adrian's career includes time as the **Victorian Regional Director for AV Jennings**.
+
+He also worked with **Simon Campe**, **Pioneer Homes**, **Simmons Homes**, and on the railways.
+
+His expertise was crucial for EastLink's "Adrian's Corner", ensuring a **100mm bitumen standard**.
+
+He founded and ran several successful businesses, including **Hensgen Constructions**, **Home Sweet Homes** (which won an award in 1995), and **Adept Project Management**, which is still active today.
+
+Adrian continues to work daily as the master builder at a retirement home, and sells second-hand items at Sunday markets on weekends. Still on the tools every day.
     `);
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(legacyContent);
-    
+
     const dailyTips = [
-        "Measure twice, cut once. It's less embarrassing.",
-        "A tidy worksite is a safe worksite. And you can find your pencil.",
-        "Don't blame the tool. Unless it's a cheap one. Then blame the tool.",
-        "Respect the wood grain. It has a story to tell.",
-        "Coffee first, safety second. Just kidding. Mostly.",
-        "The best tool you have is your brain. Use it.",
+        "Libra: Embrace fairness in trades today. Your calm heart is your strength.",
+        "Life Path 6: Nurture your projects, but remember to rest. A balanced builder is a master builder.",
+        "Mildura Roots: Channel the Murray's steady flow. Patience brings the best results.",
+        "Health: Avoid stress for a calm heart. A steady hand comes from a steady mind.",
+        "Trade: Measure twice, cut once. This applies to decisions as well as timber.",
+        "Legacy: Share one piece of wisdom with someone younger today.",
+        "Heart: A good laugh with an old friend is the best medicine for the heart.",
+        "Libra: Your eye for balance makes your work exceptional. Trust your instincts.",
+        "Life Path 6: Your reliability is your trademark. Don't let small details trouble you.",
+        "Mildura Roots: Remember the hot days and hard work. You're built from resilient stuff.",
+        "Market Day: A fair price and a firm handshake — that's the Hensgen way.",
+        "Builder's Tip: The best tool you have is your brain. Use it before the tape measure.",
     ];
-    const todayTip = dailyTips[new Date().getDate() % dailyTips.length];
+    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+    const todayTip = dailyTips[dayOfYear % dailyTips.length];
 
     const handleSaveLegacy = () => {
         setLegacyContent(editContent);
         setIsEditing(false);
     }
+
+    const toggleSpeech = () => {
+        if (isSpeaking) {
+            window.speechSynthesis.cancel();
+            setIsSpeaking(false);
+            return;
+        }
+        const plainText = legacyContent.replace(/[#*_\[\]()]/g, '').replace(/\n{2,}/g, '. ');
+        const utterance = new SpeechSynthesisUtterance(plainText);
+        utterance.rate = 0.9;
+        utterance.lang = 'en-AU';
+        const voices = window.speechSynthesis.getVoices();
+        const auVoice = voices.find(v => v.lang.includes('en-AU'));
+        if (auVoice) utterance.voice = auVoice;
+        utterance.onend = () => setIsSpeaking(false);
+        utterance.onerror = () => setIsSpeaking(false);
+        window.speechSynthesis.speak(utterance);
+        setIsSpeaking(true);
+    };
     
     return (
         <div className="p-4 space-y-4">
@@ -590,6 +661,9 @@ This is a space to celebrate that legacy.
                             <div className="prose prose-slate max-w-none">
                                 <ReactMarkdown>{legacyContent}</ReactMarkdown>
                             </div>
+                            <button onClick={toggleSpeech} className={`w-full font-bold py-3 px-4 rounded-lg text-lg ${isSpeaking ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-builder-blue-600 text-white hover:bg-builder-blue-700'}`}>
+                                {isSpeaking ? '⏹ Stop Reading' : '🔊 Read Aloud'}
+                            </button>
                             <button onClick={() => { setEditContent(legacyContent); setIsEditing(true); }} className="w-full bg-slate-200 text-slate-800 font-bold py-2 px-4 rounded-lg">Edit</button>
                         </div>
                     )}
@@ -627,18 +701,18 @@ interface BottomNavItemProps {
   onClick: () => void;
 }
 const BottomNavItem: React.FC<BottomNavItemProps> = ({ label, icon, isActive, onClick }) => (
-    <button onClick={onClick} className={`flex flex-col items-center justify-center w-full pt-2 pb-1 transition-colors duration-200 ${isActive ? 'text-builder-blue-500' : 'text-slate-500 hover:text-builder-blue-400'}`}>
-        {icon}
-        <span className="text-xs mt-1">{label}</span>
+    <button onClick={onClick} className={`flex flex-col items-center justify-center w-full py-3 transition-colors duration-200 ${isActive ? 'text-builder-blue-600 font-bold' : 'text-slate-500 hover:text-builder-blue-400'}`}>
+        <span className="[&>svg]:h-7 [&>svg]:w-7">{icon}</span>
+        <span className="text-sm mt-1">{label}</span>
     </button>
 );
 
 const BottomNav: React.FC<{ activePage: Page; setPage: (page: Page) => void }> = ({ activePage, setPage }) => (
-    <nav className="bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-t-lg fixed bottom-0 left-0 right-0 z-10 flex justify-around">
+    <nav className="bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-t-lg fixed bottom-0 left-0 right-0 z-10 flex justify-around safe-bottom">
         <BottomNavItem label="Home" icon={<HomeIcon />} isActive={activePage === Page.Home} onClick={() => setPage(Page.Home)} />
         <BottomNavItem label="Price" icon={<CameraIcon />} isActive={activePage === Page.PhotoPriceCheck} onClick={() => setPage(Page.PhotoPriceCheck)} />
+        <BottomNavItem label="News" icon={<NewsIcon />} isActive={activePage === Page.News} onClick={() => setPage(Page.News)} />
         <BottomNavItem label="Tools" icon={<ToolsIcon />} isActive={activePage === Page.Tools} onClick={() => setPage(Page.Tools)} />
-        <BottomNavItem label="Health" icon={<HealthIcon />} isActive={activePage === Page.Health} onClick={() => setPage(Page.Health)} />
         <BottomNavItem label="Chat" icon={<ChatIcon />} isActive={activePage === Page.Chat} onClick={() => setPage(Page.Chat)} />
     </nav>
 );

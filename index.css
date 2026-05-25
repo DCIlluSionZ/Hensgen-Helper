@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-builder-blue-50: #eff6ff;
+  --color-builder-blue-100: #dbeafe;
+  --color-builder-blue-200: #bfdbfe;
+  --color-builder-blue-300: #93c5fd;
+  --color-builder-blue-400: #60a5fa;
+  --color-builder-blue-500: #3b82f6;
+  --color-builder-blue-600: #2563eb;
+  --color-builder-blue-700: #1d4ed8;
+  --color-builder-blue-800: #1e40af;
+  --color-builder-blue-900: #1e3a8a;
+  --color-builder-blue-950: #172554;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+}
