@@ -6,6 +6,7 @@ import { getWeather, getNews } from './services/feedService';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 // --- ICONS --- //
 const HomeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
@@ -94,13 +95,11 @@ const HomeScreen: React.FC<{ setPage: (page: Page) => void }> = ({ setPage }) =>
 
 const PhotoPriceCheckScreen: React.FC = () => {
     const [image, setImage] = useState<string | null>(null);
-    const [imageFile, setImageFile] = useState<File | null>(null);
     const [valuation, setValuation] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
     const [queuedImages, setQueuedImages] = useLocalStorage<QueuedImage[]>('photoQueue', []);
     const isOnline = useOnlineStatus();
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const processQueue = useCallback(async () => {
         if (isOnline && queuedImages.length > 0) {
@@ -120,41 +119,43 @@ const PhotoPriceCheckScreen: React.FC = () => {
         processQueue();
     }, [isOnline, processQueue]);
 
-    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files[0]) {
-            const file = event.target.files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImage(reader.result as string);
-                setImageFile(file);
+    const handleTakePhoto = async () => {
+        try {
+            const photo = await Camera.getPhoto({
+                quality: 85,
+                allowEditing: false,
+                resultType: CameraResultType.DataUrl,
+                source: CameraSource.Prompt,
+            });
+            if (photo.dataUrl) {
+                setImage(photo.dataUrl);
                 setValuation('');
                 setError('');
-            };
-            reader.readAsDataURL(file);
+            }
+        } catch (e: any) {
+            if (e.message !== 'User cancelled photos app') {
+                setError('Could not access camera. Please check app permissions in Settings.');
+            }
         }
     };
 
     const handleGetValuation = async () => {
-        if (!image || !imageFile) return;
+        if (!image) return;
 
         setIsLoading(true);
         setError('');
         setValuation('');
 
         if (!isOnline) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const newQueuedImage: QueuedImage = {
-                    id: Date.now().toString(),
-                    dataUrl: reader.result as string,
-                    fileName: imageFile.name,
-                };
-                setQueuedImages(q => [...q, newQueuedImage]);
-                setError('No internet. Item queued and will be sent automatically when online.');
-                setIsLoading(false);
-                setImage(null);
+            const newQueuedImage: QueuedImage = {
+                id: Date.now().toString(),
+                dataUrl: image,
+                fileName: 'photo_' + Date.now(),
             };
-            reader.readAsDataURL(imageFile);
+            setQueuedImages(q => [...q, newQueuedImage]);
+            setError('No internet. Item queued and will be sent automatically when online.');
+            setIsLoading(false);
+            setImage(null);
             return;
         }
 
@@ -170,8 +171,7 @@ const PhotoPriceCheckScreen: React.FC = () => {
 
     return (
         <div className="p-4 space-y-4">
-            <input type="file" accept="image/*" capture="environment" ref={fileInputRef} onChange={handleImageChange} className="hidden" />
-            <button onClick={() => fileInputRef.current?.click()} className="w-full bg-builder-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-builder-blue-700 transition-colors flex items-center justify-center space-x-2">
+            <button onClick={handleTakePhoto} className="w-full bg-builder-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-builder-blue-700 transition-colors flex items-center justify-center space-x-2">
                 <CameraIcon />
                 <span>{image ? "Change Photo" : "Take or Pick Photo"}</span>
             </button>
