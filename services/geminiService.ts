@@ -40,6 +40,8 @@ Format your response in simple markdown.`;
 };
 
 
+export const resetChat = () => { chat = null; };
+
 export const getChatResponse = async (history: { role: 'user' | 'model', parts: { text: string }[] }[], newMessage: string): Promise<string> => {
     if (!chat) {
         chat = ai.chats.create({
@@ -54,8 +56,13 @@ export const getChatResponse = async (history: { role: 'user' | 'model', parts: 
     try {
         const response: GenerateContentResponse = await chat.sendMessage({ message: newMessage });
         return response.text ?? 'No response from AI.';
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error getting chat response:", error);
-        throw new Error("Couldn't get a response. Try again in a moment.");
+        chat = null;
+        const msg = error?.message || '';
+        if (msg.includes('API key')) throw new Error("API key error. Please check your Gemini API key is valid.");
+        if (msg.includes('404') || msg.includes('not found')) throw new Error("Model not available. Please check your API key has access to gemini-3.5-flash.");
+        if (msg.includes('network') || msg.includes('Failed to fetch')) throw new Error("No internet connection. Please check your network.");
+        throw new Error("Couldn't get a response: " + msg);
     }
 };
