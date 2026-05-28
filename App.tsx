@@ -494,32 +494,45 @@ const ChatScreen: React.FC = () => {
     const isOnline = useOnlineStatus();
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
+    const suggestions = [
+        { label: "What's this worth?", text: "I've got an old wooden dresser in good condition. What would be a fair price at the Sunday market?" },
+        { label: "Help me write a listing", text: "Help me write a short Facebook Marketplace listing for a second-hand power drill in good working condition." },
+        { label: "Selling tips", text: "What are some tips for setting up my stall at the Sunday market to attract more buyers?" },
+        { label: "Building question", text: "What's the best way to fix a crack in a rendered brick wall?" },
+        { label: "Convert measurements", text: "How many millimetres in 3 and 5/8 inches?" },
+        { label: "Explain something", text: "Can you explain what a fair price for second-hand timber furniture usually depends on?" },
+    ];
+
     useEffect(() => {
         chatContainerRef.current?.scrollTo(0, chatContainerRef.current.scrollHeight);
     }, [messages]);
 
-    const handleSend = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!input.trim() || isLoading) return;
+    const sendMessage = async (text: string) => {
+        if (!text.trim() || isLoading) return;
 
-        const userMessage: ChatMessage = { role: 'user', text: input };
+        const userMessage: ChatMessage = { role: 'user', text };
         setMessages(m => [...m, userMessage]);
         setInput('');
         setIsLoading(true);
         setError('');
 
         try {
-            const responseText = await getChatResponse(history, input);
+            const responseText = await getChatResponse(history, text);
             const modelMessage: ChatMessage = { role: 'model', text: responseText };
             setMessages(m => [...m, modelMessage]);
-            setHistory(h => [...h, { role: 'user', parts: [{ text: input }] }, { role: 'model', parts: [{ text: responseText }] }]);
+            setHistory(h => [...h, { role: 'user', parts: [{ text }] }, { role: 'model', parts: [{ text: responseText }] }]);
         } catch (e: any) {
             setError(e.message);
         } finally {
             setIsLoading(false);
         }
     };
-    
+
+    const handleSend = async (e: React.FormEvent) => {
+        e.preventDefault();
+        sendMessage(input);
+    };
+
     return (
         <div className="h-full flex flex-col p-4 bg-slate-100">
             {!isOnline && (
@@ -534,6 +547,23 @@ const ChatScreen: React.FC = () => {
                 </div>
             )}
             <div ref={chatContainerRef} className="flex-grow overflow-y-auto space-y-4 mb-4">
+                {messages.length === 0 && isOnline && (
+                    <div className="space-y-4 py-4">
+                        <div className="text-center space-y-2">
+                            <p className="text-2xl">G'day Adrian!</p>
+                            <p className="text-slate-600 text-base">I'm your AI assistant. Tap any suggestion below or type your own question.</p>
+                            <p className="text-slate-400 text-sm mt-1">I'm great with selling advice, building know-how, and general questions. Just keep in mind I don't know today's news or live scores — use the News tab for that.</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 px-2">
+                            {suggestions.map((s, i) => (
+                                <button key={i} onClick={() => sendMessage(s.text)} className="bg-white border border-slate-200 rounded-xl p-3 text-left shadow-sm hover:bg-builder-blue-50 hover:border-builder-blue-300 transition-colors">
+                                    <p className="font-semibold text-builder-blue-700 text-sm">{s.label}</p>
+                                    <p className="text-slate-500 text-xs mt-1 line-clamp-2">{s.text}</p>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
                 {messages.map((msg, index) => (
                     <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-2xl ${msg.role === 'user' ? 'bg-builder-blue-600 text-white rounded-br-lg' : 'bg-white text-slate-800 shadow-sm rounded-bl-lg'}`}>
@@ -559,7 +589,7 @@ const ChatScreen: React.FC = () => {
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder={isOnline ? "Ask for selling advice..." : "Chat is offline"}
+                    placeholder={isOnline ? "Ask me anything..." : "Chat is offline"}
                     disabled={!isOnline || isLoading}
                     className="flex-grow p-3 border border-slate-300 rounded-full focus:ring-2 focus:ring-builder-blue-500 focus:outline-none"
                 />
