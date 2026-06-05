@@ -1,6 +1,10 @@
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 
-const API_KEY = "AIzaSyBjn0wSKFMMdBG954KND3qQFep1EvRnL-Q";
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+
+if (!API_KEY) {
+  console.error("Missing VITE_GEMINI_API_KEY. Create a .env.local file at the project root with VITE_GEMINI_API_KEY=your-key");
+}
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 let chat: Chat | null = null;
