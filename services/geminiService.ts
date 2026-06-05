@@ -19,7 +19,7 @@ function fileToGenerativePart(base64Data: string, mimeType: string) {
 }
 
 export const generateValuation = async (imageDataUrl: string): Promise<string> => {
-  const model = 'gemini-3.1-flash';
+  const model = 'gemini-3.5-flash';
   const prompt = `You are an expert at valuing second-hand items for the Melbourne, Australia market, especially Sunday markets, Gumtree, Facebook Marketplace, and eBay AU. Analyse this image and provide:
 - A likely name for the item.
 - 2-3 bullet points about its apparent condition from the photo.
@@ -49,7 +49,7 @@ export const resetChat = () => { chat = null; };
 export const getChatResponse = async (history: { role: 'user' | 'model', parts: { text: string }[] }[], newMessage: string): Promise<string> => {
     if (!chat) {
         chat = ai.chats.create({
-            model: 'gemini-3.1-flash',
+            model: 'gemini-3.5-flash',
             config: {
                 systemInstruction: "You are 'Hensgen Helper', a friendly AI assistant for Adrian, a master builder in Melbourne who sells second-hand items at Sunday markets. He's experienced but not tech-savvy. Give him practical, straightforward advice on selling, pricing, and building. Keep answers clear and concise. Use Australian English.",
             },
@@ -65,7 +65,7 @@ export const getChatResponse = async (history: { role: 'user' | 'model', parts: 
         chat = null;
         const msg = error?.message || '';
         if (msg.includes('API key')) throw new Error("API key error. Please check your Gemini API key is valid.");
-        if (msg.includes('404') || msg.includes('not found')) throw new Error("Model not available. Please check your API key has access to gemini-3.1-flash.");
+        if (msg.includes('404') || msg.includes('not found')) throw new Error("Model not available. Please check your API key has access to gemini-3.5-flash.");
         if (msg.includes('network') || msg.includes('Failed to fetch')) throw new Error("No internet connection. Please check your network.");
         throw new Error("Couldn't get a response: " + msg);
     }
