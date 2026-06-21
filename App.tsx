@@ -81,14 +81,20 @@ const Card: React.FC<CardProps> = ({ title, description, icon, onClick, color })
 // --- PAGE COMPONENTS --- //
 
 const HomeScreen: React.FC<{ setPage: (page: Page) => void }> = ({ setPage }) => (
-    <div className="p-4">
+    <div className="p-4 space-y-4">
+        <img
+            src="/dci-banner.png"
+            alt="DCI — Designed & Coded with Intelligence"
+            className="w-full rounded-xl shadow-lg ring-1 ring-slate-700"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+        />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card title="Photo Price Check" description="Value items with AI" icon={<CameraIcon />} onClick={() => setPage(Page.PhotoPriceCheck)} color="bg-builder-blue-600 hover:bg-builder-blue-700" />
-            <Card title="Builder's Tools" description="Bubble level & ruler" icon={<ToolsIcon />} onClick={() => setPage(Page.Tools)} color="bg-slate-700 hover:bg-slate-800" />
+            <Card title="Builder's Tools" description="Bubble level & ruler" icon={<ToolsIcon />} onClick={() => setPage(Page.Tools)} color="bg-slate-600 hover:bg-slate-500" />
             <Card title="News & Weather" description="Melbourne updates" icon={<NewsIcon />} onClick={() => setPage(Page.News)} color="bg-teal-600 hover:bg-teal-700" />
             <Card title="Heart Health" description="Log INR & diet tips" icon={<HealthIcon />} onClick={() => setPage(Page.Health)} color="bg-red-600 hover:bg-red-700" />
             <Card title="AI Seller Coach" description="Chat about selling" icon={<ChatIcon />} onClick={() => setPage(Page.Chat)} color="bg-purple-600 hover:bg-purple-700" />
-            <Card title="Info Pages" description="Tips & Legacy" icon={<InfoIcon />} onClick={() => setPage(Page.Info)} color="bg-gray-500 hover:bg-gray-600" />
+            <Card title="Info Pages" description="Tips & Legacy" icon={<InfoIcon />} onClick={() => setPage(Page.Info)} color="bg-slate-500 hover:bg-slate-400" />
         </div>
     </div>
 );
@@ -176,27 +182,27 @@ const PhotoPriceCheckScreen: React.FC = () => {
                 <span>{image ? "Change Photo" : "Take or Pick Photo"}</span>
             </button>
             {image && (
-                <div className="p-2 border-2 border-dashed border-slate-300 rounded-lg">
+                <div className="p-2 border-2 border-dashed border-slate-500 rounded-lg">
                     <img src={image} alt="Selected item" className="rounded-md max-h-64 w-auto mx-auto" />
                 </div>
             )}
             {image && (
-                <button onClick={handleGetValuation} disabled={isLoading} className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-green-700 transition-colors disabled:bg-slate-400 flex justify-center items-center">
+                <button onClick={handleGetValuation} disabled={isLoading} className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-green-700 transition-colors disabled:bg-slate-500 flex justify-center items-center">
                     {isLoading ? <Spinner /> : "Get Price Check"}
                 </button>
             )}
-            {isLoading && <p className="text-center text-slate-600">Getting valuation... this may take a moment.</p>}
-            {error && <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md" role="alert"><p>{error}</p></div>}
+            {isLoading && <p className="text-center text-slate-300">Getting valuation... this may take a moment.</p>}
+            {error && <div className="bg-yellow-900/40 border-l-4 border-yellow-500 text-yellow-200 p-4 rounded-md" role="alert"><p>{error}</p></div>}
             {queuedImages.length > 0 && (
-                <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md" role="alert">
+                <div className="bg-blue-900/40 border-l-4 border-blue-500 text-blue-200 p-4 rounded-md" role="alert">
                     <p className="font-bold">Offline Queue</p>
                     <p>{queuedImages.length} item(s) waiting to be sent.</p>
                 </div>
             )}
             {valuation && (
-                <div className="p-4 bg-white rounded-lg shadow-md">
-                    <h3 className="text-xl font-bold mb-2 text-slate-800">Valuation Result</h3>
-                    <div className="prose prose-slate max-w-none">
+                <div className="p-4 bg-slate-700 rounded-lg shadow-md">
+                    <h3 className="text-xl font-bold mb-2 text-slate-100">Valuation Result</h3>
+                    <div className="prose prose-invert max-w-none">
                        <ReactMarkdown>{valuation}</ReactMarkdown>
                     </div>
                 </div>
@@ -268,8 +274,8 @@ const ToolsScreen: React.FC = () => {
 
     return (
         <div className="p-4 space-y-6">
-            <h3 className="text-2xl font-bold text-slate-800 text-center">Builder's Tools</h3>
-            <div className="bg-slate-800 p-6 rounded-lg shadow-inner text-white space-y-4">
+            <h3 className="text-2xl font-bold text-slate-100 text-center">Builder's Tools</h3>
+            <div className="bg-slate-900 p-6 rounded-lg shadow-inner text-white space-y-4">
                 <h4 className="text-lg font-semibold text-center text-slate-300">Bubble Level</h4>
                 <div className={`relative w-full h-16 bg-slate-700 rounded-full flex items-center justify-center overflow-hidden border-2 ${isLevel ? 'border-green-400' : 'border-slate-500'}`}>
                     <div className="absolute w-2 h-full bg-white/20 left-1/2 -ml-1"></div>
@@ -285,14 +291,14 @@ const ToolsScreen: React.FC = () => {
                 </p>
             </div>
             <div className="space-y-3">
-                <h4 className="text-lg font-semibold text-center text-slate-700">Flashlight</h4>
+                <h4 className="text-lg font-semibold text-center text-slate-300">Flashlight</h4>
                 <button
                     onClick={toggleTorch}
-                    className={`w-full font-bold py-4 px-4 rounded-lg shadow-md transition-colors text-xl ${torchOn ? 'bg-yellow-400 text-black hover:bg-yellow-500' : 'bg-slate-700 text-white hover:bg-slate-800'}`}
+                    className={`w-full font-bold py-4 px-4 rounded-lg shadow-md transition-colors text-xl ${torchOn ? 'bg-yellow-400 text-black hover:bg-yellow-500' : 'bg-slate-700 text-white hover:bg-slate-600'}`}
                 >
                     {torchOn ? '🔦 Torch ON — Tap to Turn Off' : '🔦 Turn On Torch'}
                 </button>
-                {torchError && <p className="text-center text-red-500 text-sm">{torchError}</p>}
+                {torchError && <p className="text-center text-red-400 text-sm">{torchError}</p>}
             </div>
         </div>
     );
@@ -341,20 +347,20 @@ const NewsScreen: React.FC = () => {
 
     return (
         <div className="p-4 space-y-6">
-            {error && <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md" role="alert"><p>{error}</p></div>}
+            {error && <div className="bg-yellow-900/40 border-l-4 border-yellow-500 text-yellow-200 p-4 rounded-md" role="alert"><p>{error}</p></div>}
             {/* Weather */}
             {weather && (
                 <div>
-                    <h3 className="text-2xl font-bold text-slate-800 mb-2">Melbourne Weather</h3>
+                    <h3 className="text-2xl font-bold text-slate-100 mb-2">Melbourne Weather</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 text-center">
                         {weather.daily.map(day => (
-                            <div key={day.time} className="bg-white p-2 rounded-lg shadow">
+                            <div key={day.time} className="bg-slate-700 text-slate-100 p-2 rounded-lg shadow">
                                 <p className="font-bold text-sm">{format(parseISO(day.time), 'EEE')}</p>
                                 <p className="text-3xl my-1">{weatherIcons[day.weathercode] || '❓'}</p>
                                 <p className="text-sm">
-                                    <span className="font-semibold text-red-500">{Math.round(day.temperature_2m_max)}°</span> / <span className="text-blue-500">{Math.round(day.temperature_2m_min)}°</span>
+                                    <span className="font-semibold text-red-400">{Math.round(day.temperature_2m_max)}°</span> / <span className="text-blue-300">{Math.round(day.temperature_2m_min)}°</span>
                                 </p>
-                                <p className="text-xs text-slate-500">{day.precipitation_sum > 0 ? `${day.precipitation_sum}mm` : ''}</p>
+                                <p className="text-xs text-slate-400">{day.precipitation_sum > 0 ? `${day.precipitation_sum}mm` : ''}</p>
                             </div>
                         ))}
                     </div>
@@ -363,16 +369,16 @@ const NewsScreen: React.FC = () => {
             {/* News */}
             {news.length > 0 && (
                  <div>
-                    <h3 className="text-2xl font-bold text-slate-800 mb-2">Top Headlines</h3>
-                    <div className="space-y-3 h-[50vh] overflow-y-auto bg-white p-2 rounded-lg shadow">
+                    <h3 className="text-2xl font-bold text-slate-100 mb-2">Top Headlines</h3>
+                    <div className="space-y-3 h-[50vh] overflow-y-auto bg-slate-700 p-2 rounded-lg shadow">
                         {news.map((item, index) => (
-                            <a key={index} href={item.link} target="_blank" rel="noopener noreferrer" className="block p-3 bg-slate-50 hover:bg-slate-100 rounded-lg shadow-sm">
-                                <div className="flex justify-between items-center text-xs text-slate-500 mb-1">
+                            <a key={index} href={item.link} target="_blank" rel="noopener noreferrer" className="block p-3 bg-slate-600 hover:bg-slate-500 rounded-lg shadow-sm">
+                                <div className="flex justify-between items-center text-xs text-slate-300 mb-1">
                                     <span className={`px-2 py-0.5 rounded-full text-white text-xs ${item.source.includes('Cricket') ? 'bg-green-600' : item.source.includes('SBS') ? 'bg-blue-600' : 'bg-red-600'}`}>{item.source}</span>
                                     <span>{timeAgo(item.pubDate)}</span>
                                 </div>
-                                <h4 className="font-semibold text-slate-800">{item.title}</h4>
-                                <p className="text-sm text-slate-600 line-clamp-2">{item.description}</p>
+                                <h4 className="font-semibold text-slate-100">{item.title}</h4>
+                                <p className="text-sm text-slate-300 line-clamp-2">{item.description}</p>
                             </a>
                         ))}
                     </div>
@@ -431,53 +437,53 @@ const HealthScreen: React.FC = () => {
     return (
         <div className="p-4 space-y-6">
             <div className="flex justify-between items-center">
-                <h3 className="text-2xl font-bold text-slate-800">INR Log</h3>
+                <h3 className="text-2xl font-bold text-slate-100">INR Log</h3>
                 <button onClick={() => setShowForm(!showForm)} className="bg-builder-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-builder-blue-700 transition-colors">
                     {showForm ? 'Cancel' : '+ Log INR'}
                 </button>
             </div>
-            
+
             {showForm && (
-                <form onSubmit={handleAddLog} className="p-4 bg-white rounded-lg shadow-md space-y-3">
-                    <input type="number" step="0.1" placeholder="INR Value (e.g., 2.5)" value={inrValue} onChange={e => setInrValue(e.target.value)} required className="w-full p-2 border border-slate-300 rounded-md" />
-                    <textarea placeholder="Notes (optional)" value={notes} onChange={e => setNotes(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md"></textarea>
+                <form onSubmit={handleAddLog} className="p-4 bg-slate-700 rounded-lg shadow-md space-y-3">
+                    <input type="number" step="0.1" placeholder="INR Value (e.g., 2.5)" value={inrValue} onChange={e => setInrValue(e.target.value)} required className="w-full p-2 border border-slate-500 bg-slate-600 text-white placeholder:text-slate-400 rounded-md" />
+                    <textarea placeholder="Notes (optional)" value={notes} onChange={e => setNotes(e.target.value)} className="w-full p-2 border border-slate-500 bg-slate-600 text-white placeholder:text-slate-400 rounded-md"></textarea>
                     <button type="submit" className="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 transition-colors">Save Log</button>
                 </form>
             )}
 
             {chartData.length > 1 && (
-                <div className="bg-white p-4 rounded-lg shadow-md">
-                    <h4 className="font-bold text-lg mb-4 text-center">Last 12 Entries</h4>
+                <div className="bg-slate-700 p-4 rounded-lg shadow-md">
+                    <h4 className="font-bold text-lg mb-4 text-center text-slate-100">Last 12 Entries</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
-                            <YAxis domain={[0, 5]} />
-                            <Tooltip />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                            <XAxis dataKey="date" stroke="#cbd5e1" />
+                            <YAxis domain={[0, 5]} stroke="#cbd5e1" />
+                            <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #475569', color: '#f1f5f9' }} />
                             <Legend />
-                            <ReferenceLine y={2.0} label={{ value: 'Min', position: 'insideLeft' }} stroke="orange" strokeDasharray="3 3" />
-                            <ReferenceLine y={3.0} label={{ value: 'Max', position: 'insideLeft' }} stroke="orange" strokeDasharray="3 3" />
-                            <Line type="monotone" dataKey="value" stroke="#1d4ed8" strokeWidth={2} name="INR" />
+                            <ReferenceLine y={2.0} label={{ value: 'Min', position: 'insideLeft', fill: '#fbbf24' }} stroke="orange" strokeDasharray="3 3" />
+                            <ReferenceLine y={3.0} label={{ value: 'Max', position: 'insideLeft', fill: '#fbbf24' }} stroke="orange" strokeDasharray="3 3" />
+                            <Line type="monotone" dataKey="value" stroke="#60a5fa" strokeWidth={2} name="INR" />
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
             )}
-            
-            <div className="bg-white p-4 rounded-lg shadow-md space-y-2">
-                 <h4 className="text-xl font-bold text-slate-800">Warfarin Diet Tips</h4>
-                 <ul className="list-disc list-inside text-slate-700 space-y-1">
+
+            <div className="bg-slate-700 p-4 rounded-lg shadow-md space-y-2">
+                 <h4 className="text-xl font-bold text-slate-100">Warfarin Diet Tips</h4>
+                 <ul className="list-disc list-inside text-slate-300 space-y-1">
                     <li>Aim for consistent (not zero!) intake of greens like spinach and broccoli.</li>
                     <li>Be cautious with cranberry juice and grapefruit, as they can interfere.</li>
                     <li>Moderate alcohol consumption is key.</li>
                     <li>Many antibiotics and other medications can affect your INR. Tell your doctor you're on Warfarin.</li>
                  </ul>
-                 <p className="text-xs text-slate-500 pt-2 border-t mt-2"><b>Disclaimer:</b> This is for informational purposes only and is not medical advice. Always consult with your doctor or pharmacist.</p>
+                 <p className="text-xs text-slate-400 pt-2 border-t border-slate-600 mt-2"><b>Disclaimer:</b> This is for informational purposes only and is not medical advice. Always consult with your doctor or pharmacist.</p>
             </div>
 
-            <div className="bg-white p-4 rounded-lg shadow-md">
-                <h4 className="text-xl font-bold text-slate-800 mb-2">Reminders</h4>
-                <p className="text-slate-700 mb-3">Enable notifications to get a weekly reminder to log your INR.</p>
-                <button onClick={requestNotificationPermission} className="w-full bg-slate-600 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-slate-700 transition-colors">
+            <div className="bg-slate-700 p-4 rounded-lg shadow-md">
+                <h4 className="text-xl font-bold text-slate-100 mb-2">Reminders</h4>
+                <p className="text-slate-300 mb-3">Enable notifications to get a weekly reminder to log your INR.</p>
+                <button onClick={requestNotificationPermission} className="w-full bg-slate-600 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-slate-500 transition-colors">
                     Setup Weekly Reminders
                 </button>
             </div>
@@ -534,9 +540,9 @@ const ChatScreen: React.FC = () => {
     };
 
     return (
-        <div className="h-full flex flex-col p-4 bg-slate-100">
+        <div className="h-full flex flex-col p-4 bg-slate-800">
             {!isOnline && (
-                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md mb-4" role="alert">
+                <div className="bg-yellow-900/40 border-l-4 border-yellow-500 text-yellow-200 p-4 rounded-md mb-4" role="alert">
                     <p className="font-bold">You're Offline</p>
                     <p>Chat is unavailable. Here are some quick tips:</p>
                     <ul className="list-disc list-inside mt-2 text-sm">
@@ -550,15 +556,15 @@ const ChatScreen: React.FC = () => {
                 {messages.length === 0 && isOnline && (
                     <div className="space-y-4 py-4">
                         <div className="text-center space-y-2">
-                            <p className="text-2xl">G'day Adrian!</p>
-                            <p className="text-slate-600 text-base">I'm your AI assistant. Tap any suggestion below or type your own question.</p>
+                            <p className="text-2xl text-slate-100">G'day Adrian!</p>
+                            <p className="text-slate-300 text-base">I'm your AI assistant. Tap any suggestion below or type your own question.</p>
                             <p className="text-slate-400 text-sm mt-1">I'm great with selling advice, building know-how, and general questions. Just keep in mind I don't know today's news or live scores — use the News tab for that.</p>
                         </div>
                         <div className="grid grid-cols-2 gap-2 px-2">
                             {suggestions.map((s, i) => (
-                                <button key={i} onClick={() => sendMessage(s.text)} className="bg-white border border-slate-200 rounded-xl p-3 text-left shadow-sm hover:bg-builder-blue-50 hover:border-builder-blue-300 transition-colors">
-                                    <p className="font-semibold text-builder-blue-700 text-sm">{s.label}</p>
-                                    <p className="text-slate-500 text-xs mt-1 line-clamp-2">{s.text}</p>
+                                <button key={i} onClick={() => sendMessage(s.text)} className="bg-slate-700 border border-slate-600 rounded-xl p-3 text-left shadow-sm hover:bg-slate-600 hover:border-builder-blue-400 transition-colors">
+                                    <p className="font-semibold text-builder-blue-300 text-sm">{s.label}</p>
+                                    <p className="text-slate-400 text-xs mt-1 line-clamp-2">{s.text}</p>
                                 </button>
                             ))}
                         </div>
@@ -566,14 +572,14 @@ const ChatScreen: React.FC = () => {
                 )}
                 {messages.map((msg, index) => (
                     <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-2xl ${msg.role === 'user' ? 'bg-builder-blue-600 text-white rounded-br-lg' : 'bg-white text-slate-800 shadow-sm rounded-bl-lg'}`}>
+                        <div className={`max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-2xl ${msg.role === 'user' ? 'bg-builder-blue-600 text-white rounded-br-lg' : 'bg-slate-700 text-slate-100 shadow-sm rounded-bl-lg'}`}>
                             <p className="text-base">{msg.text}</p>
                         </div>
                     </div>
                 ))}
                 {isLoading && (
                     <div className="flex justify-start">
-                        <div className="max-w-xs p-3 rounded-2xl bg-white text-slate-800 shadow-sm rounded-bl-lg">
+                        <div className="max-w-xs p-3 rounded-2xl bg-slate-700 text-slate-100 shadow-sm rounded-bl-lg">
                            <div className="flex items-center space-x-2">
                              <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
                              <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
@@ -583,7 +589,7 @@ const ChatScreen: React.FC = () => {
                     </div>
                 )}
             </div>
-             {error && <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-2 rounded-md my-2" role="alert"><p className="text-sm">{error}</p></div>}
+             {error && <div className="bg-red-900/40 border-l-4 border-red-500 text-red-200 p-2 rounded-md my-2" role="alert"><p className="text-sm">{error}</p></div>}
             <form onSubmit={handleSend} className="flex space-x-2">
                 <input
                     type="text"
@@ -591,9 +597,9 @@ const ChatScreen: React.FC = () => {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={isOnline ? "Ask me anything..." : "Chat is offline"}
                     disabled={!isOnline || isLoading}
-                    className="flex-grow p-3 border border-slate-300 rounded-full focus:ring-2 focus:ring-builder-blue-500 focus:outline-none"
+                    className="flex-grow p-3 border border-slate-600 bg-slate-700 text-white placeholder:text-slate-400 rounded-full focus:ring-2 focus:ring-builder-blue-500 focus:outline-none"
                 />
-                <button type="submit" disabled={!isOnline || isLoading || !input.trim()} className="bg-builder-blue-600 text-white rounded-full p-3 shadow-md hover:bg-builder-blue-700 disabled:bg-slate-400 transition-colors">
+                <button type="submit" disabled={!isOnline || isLoading || !input.trim()} className="bg-builder-blue-600 text-white rounded-full p-3 shadow-md hover:bg-builder-blue-700 disabled:bg-slate-500 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
                 </button>
             </form>
@@ -664,23 +670,23 @@ Adrian continues to work daily as the master builder at a retirement home, and s
     
     return (
         <div className="p-4 space-y-4">
-            <div className="flex justify-center bg-slate-200 rounded-full p-1">
-                <button onClick={() => setActiveTab('universe')} className={`w-1/2 py-2 px-4 rounded-full text-lg font-semibold transition-colors ${activeTab === 'universe' ? 'bg-white text-builder-blue-700 shadow' : 'text-slate-600'}`}>Adrian's Universe</button>
-                <button onClick={() => setActiveTab('legacy')} className={`w-1/2 py-2 px-4 rounded-full text-lg font-semibold transition-colors ${activeTab === 'legacy' ? 'bg-white text-builder-blue-700 shadow' : 'text-slate-600'}`}>Builder's Legacy</button>
+            <div className="flex justify-center bg-slate-700 rounded-full p-1">
+                <button onClick={() => setActiveTab('universe')} className={`w-1/2 py-2 px-4 rounded-full text-lg font-semibold transition-colors ${activeTab === 'universe' ? 'bg-slate-900 text-builder-blue-300 shadow' : 'text-slate-300'}`}>Adrian's Universe</button>
+                <button onClick={() => setActiveTab('legacy')} className={`w-1/2 py-2 px-4 rounded-full text-lg font-semibold transition-colors ${activeTab === 'legacy' ? 'bg-slate-900 text-builder-blue-300 shadow' : 'text-slate-300'}`}>Builder's Legacy</button>
             </div>
-            
+
             {activeTab === 'universe' && (
-                <div className="bg-white p-6 rounded-xl shadow-lg text-center space-y-4">
-                    <h3 className="text-xl font-bold text-slate-800">Tip of the Day</h3>
-                    <p className="text-2xl italic text-slate-600">"{todayTip}"</p>
+                <div className="bg-slate-700 p-6 rounded-xl shadow-lg text-center space-y-4">
+                    <h3 className="text-xl font-bold text-slate-100">Tip of the Day</h3>
+                    <p className="text-2xl italic text-slate-300">"{todayTip}"</p>
                 </div>
             )}
 
             {activeTab === 'legacy' && (
-                <div className="bg-white p-6 rounded-xl shadow-lg space-y-4">
+                <div className="bg-slate-700 p-6 rounded-xl shadow-lg space-y-4">
                     {isEditing ? (
                         <div className="space-y-4">
-                            <textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} className="w-full h-64 p-2 border border-slate-300 rounded-md font-mono text-sm" />
+                            <textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} className="w-full h-64 p-2 border border-slate-500 bg-slate-600 text-white rounded-md font-mono text-sm" />
                             <div className="flex space-x-2">
                                 <button onClick={handleSaveLegacy} className="flex-1 bg-green-600 text-white font-bold py-2 px-4 rounded-lg">Save</button>
                                 <button onClick={() => setIsEditing(false)} className="flex-1 bg-slate-500 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
@@ -688,13 +694,13 @@ Adrian continues to work daily as the master builder at a retirement home, and s
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            <div className="prose prose-slate max-w-none">
+                            <div className="prose prose-invert max-w-none">
                                 <ReactMarkdown>{legacyContent}</ReactMarkdown>
                             </div>
                             <button onClick={toggleSpeech} className={`w-full font-bold py-3 px-4 rounded-lg text-lg ${isSpeaking ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-builder-blue-600 text-white hover:bg-builder-blue-700'}`}>
                                 {isSpeaking ? '⏹ Stop Reading' : '🔊 Read Aloud'}
                             </button>
-                            <button onClick={() => { setEditContent(legacyContent); setIsEditing(true); }} className="w-full bg-slate-200 text-slate-800 font-bold py-2 px-4 rounded-lg">Edit</button>
+                            <button onClick={() => { setEditContent(legacyContent); setIsEditing(true); }} className="w-full bg-slate-600 text-slate-100 font-bold py-2 px-4 rounded-lg">Edit</button>
                         </div>
                     )}
                 </div>
@@ -717,9 +723,9 @@ const Header: React.FC<{ page: Page }> = ({ page }) => {
     };
 
     return (
-        <header className="bg-builder-blue-800 bg-wood-grain text-white p-4 shadow-lg sticky top-0 z-10">
+        <header className="bg-slate-900 text-white p-4 shadow-lg sticky top-0 z-10 border-b border-slate-700">
             <h1 className="text-2xl font-bold text-center tracking-wide">{pageTitles[page]}</h1>
-            <p className="text-center text-xs text-builder-blue-200">For Adrian Hensgen, Master Builder</p>
+            <p className="text-center text-xs text-builder-blue-300">For Adrian Hensgen, Master Builder</p>
         </header>
     );
 };
@@ -731,14 +737,14 @@ interface BottomNavItemProps {
   onClick: () => void;
 }
 const BottomNavItem: React.FC<BottomNavItemProps> = ({ label, icon, isActive, onClick }) => (
-    <button onClick={onClick} className={`flex flex-col items-center justify-center w-full py-3 transition-colors duration-200 ${isActive ? 'text-builder-blue-600 font-bold' : 'text-slate-500 hover:text-builder-blue-400'}`}>
+    <button onClick={onClick} className={`flex flex-col items-center justify-center w-full py-3 transition-colors duration-200 ${isActive ? 'text-builder-blue-300 font-bold' : 'text-slate-400 hover:text-builder-blue-300'}`}>
         <span className="[&>svg]:h-7 [&>svg]:w-7">{icon}</span>
         <span className="text-sm mt-1">{label}</span>
     </button>
 );
 
 const BottomNav: React.FC<{ activePage: Page; setPage: (page: Page) => void }> = ({ activePage, setPage }) => (
-    <nav className="bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-t-lg fixed bottom-0 left-0 right-0 z-10 flex justify-around safe-bottom">
+    <nav className="bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 shadow-t-lg fixed bottom-0 left-0 right-0 z-10 flex justify-around safe-bottom">
         <BottomNavItem label="Home" icon={<HomeIcon />} isActive={activePage === Page.Home} onClick={() => setPage(Page.Home)} />
         <BottomNavItem label="Price" icon={<CameraIcon />} isActive={activePage === Page.PhotoPriceCheck} onClick={() => setPage(Page.PhotoPriceCheck)} />
         <BottomNavItem label="News" icon={<NewsIcon />} isActive={activePage === Page.News} onClick={() => setPage(Page.News)} />
@@ -764,7 +770,7 @@ const App: React.FC = () => {
     };
     
     return (
-        <div className="min-h-screen bg-slate-100 flex flex-col">
+        <div className="min-h-screen bg-slate-800 text-slate-100 flex flex-col">
             <Header page={currentPage} />
             <main className="flex-grow pb-20">
                 {renderPage()}
