@@ -1,15 +1,22 @@
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const PRIMARY_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const FALLBACK_KEY = import.meta.env.VITE_GEMINI_API_KEY_FALLBACK;
 
-if (!API_KEY) {
+if (!PRIMARY_KEY) {
   console.error("Missing VITE_GEMINI_API_KEY. Create a .env.local file at the project root with VITE_GEMINI_API_KEY=your-key");
 }
 
 const PRIMARY_MODEL = 'gemini-3.5-flash';
 const FALLBACK_MODEL = 'gemini-3.1-flash-lite';
 
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+// Fallback ladder, walked one rung per quota error:
+//   tier 0 → primary key   + gemini-3.5-flash      (best)
+//   tier 1 → primary key   + gemini-3.1-flash-lite (higher free quota)
+//   tier 2 → fallback key  + gemini-3.5-flash      (only if FALLBACK_KEY set)
+//   tier 3 → fallback key  + gemini-3.1-flash-lite (last resort)
+let tier = 0;
+let ai = new GoogleGenAI({ apiKey: PRIMARY_KEY });
 let currentModel: string = PRIMARY_MODEL;
 let chat: Chat | null = null;
 
@@ -18,13 +25,27 @@ const isQuotaError = (err: any): boolean => {
   return msg.includes('quota') || msg.includes('429') || msg.includes('exhausted') || msg.includes('billing');
 };
 
-// On a quota error, step down to the cheaper Flash-Lite model for the rest of the session.
-// Returns true if a fallback is available to try, false if already on it.
-const stepDownModel = (): boolean => {
-  if (currentModel === PRIMARY_MODEL) {
-    console.warn(`Gemini quota hit on ${PRIMARY_MODEL} — falling back to ${FALLBACK_MODEL}`);
+const stepDown = (): boolean => {
+  if (tier === 0) {
+    tier = 1;
     currentModel = FALLBACK_MODEL;
     chat = null;
+    console.warn(`Gemini quota hit — falling back to ${FALLBACK_MODEL} on primary key`);
+    return true;
+  }
+  if (tier === 1 && FALLBACK_KEY) {
+    tier = 2;
+    ai = new GoogleGenAI({ apiKey: FALLBACK_KEY });
+    currentModel = PRIMARY_MODEL;
+    chat = null;
+    console.warn(`Primary key exhausted — switching to fallback API key on ${PRIMARY_MODEL}`);
+    return true;
+  }
+  if (tier === 2) {
+    tier = 3;
+    currentModel = FALLBACK_MODEL;
+    chat = null;
+    console.warn(`Fallback key quota hit — falling back to ${FALLBACK_MODEL} on fallback key`);
     return true;
   }
   return false;
@@ -56,20 +77,25 @@ Format your response in simple markdown.`;
     contents: { parts: [imagePart, { text: prompt }] },
   });
 
-  try {
-    const response: GenerateContentResponse = await call();
-    return response.text ?? 'No response from AI.';
-  } catch (error) {
-    if (isQuotaError(error) && stepDownModel()) {
-      try {
-        const response: GenerateContentResponse = await call();
-        return response.text ?? 'No response from AI.';
-      } catch (retryError) {
-        console.error("Error generating valuation (fallback):", retryError);
-        throw new Error("AI is busy right now (daily limit reached). Please try again later.");
+  const attempt = async (): Promise<string> => {
+    try {
+      const response: GenerateContentResponse = await call();
+      return response.text ?? 'No response from AI.';
+    } catch (error) {
+      if (isQuotaError(error) && stepDown()) {
+        return attempt();
       }
+      throw error;
     }
+  };
+
+  try {
+    return await attempt();
+  } catch (error) {
     console.error("Error generating valuation:", error);
+    if (isQuotaError(error)) {
+      throw new Error("AI is busy right now (daily limit reached on all keys). Please try again later.");
+    }
     throw new Error("Failed to get valuation from AI. Please try again.");
   }
 };
@@ -88,23 +114,27 @@ export const getChatResponse = async (history: { role: 'user' | 'model', parts: 
 
     if (!chat) chat = startChat();
 
-    try {
-        const response: GenerateContentResponse = await chat.sendMessage({ message: newMessage });
-        return response.text ?? 'No response from AI.';
-    } catch (error: any) {
-        if (isQuotaError(error) && stepDownModel()) {
-            try {
-                chat = startChat();
-                const response: GenerateContentResponse = await chat.sendMessage({ message: newMessage });
-                return response.text ?? 'No response from AI.';
-            } catch (retryError: any) {
-                console.error("Error getting chat response (fallback):", retryError);
-                chat = null;
-                throw new Error("AI is busy right now (daily limit reached). Please try again later.");
+    const attempt = async (): Promise<string> => {
+        try {
+            if (!chat) chat = startChat();
+            const response: GenerateContentResponse = await chat.sendMessage({ message: newMessage });
+            return response.text ?? 'No response from AI.';
+        } catch (error: any) {
+            if (isQuotaError(error) && stepDown()) {
+                return attempt();
             }
+            throw error;
         }
+    };
+
+    try {
+        return await attempt();
+    } catch (error: any) {
         console.error("Error getting chat response:", error);
         chat = null;
+        if (isQuotaError(error)) {
+            throw new Error("AI is busy right now (daily limit reached on all keys). Please try again later.");
+        }
         const msg = error?.message || '';
         if (msg.includes('API key')) throw new Error("API key error. Please check your Gemini API key is valid.");
         if (msg.includes('404') || msg.includes('not found')) throw new Error("Model not available. Please check your API key has access to Gemini Flash.");
